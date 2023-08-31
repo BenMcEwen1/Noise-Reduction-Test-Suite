@@ -329,14 +329,14 @@ method_thresholds = {'w': 100,
 
 
 STATE = ['original', 'denoised']
-RMS = ['low', 'medium', 'high', 'extreme']
+RMS = ['extreme']
 
 def segment():
     for state in STATE:
         for rms in RMS:
             print('__________________________')
             print(f'State: {state}, RMS: {rms}')
-            directory = f'./segmentation/white/{rms}/{state}/'
-            evaluate(directory, ['w'], 0, 1, 0.001, ref_options)
+            directory = f'./segmentation/brownian/{rms}/{state}/'
+            evaluate(directory, ['r','e'], 0, 1, 0.001, ref_options)
 
 segment()
