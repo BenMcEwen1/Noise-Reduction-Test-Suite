@@ -219,8 +219,8 @@ def train(training, validation, classes, num_classes, num_epochs=10, batch_size=
     return train_loss, train_accuracy, val_loss, val_accuracy
 
 
-def resnet(sr=16000):
-    AUDIO_DIR = f"./bird dataset/denoised/"
+def resnet(state, sr=16000):
+    AUDIO_DIR = f"./classification/bird/{state}/"
     ANNOTATIONS = f"./freefield1010.csv"
     classes = [1,0]
     NUM_CLASSES = len(classes)

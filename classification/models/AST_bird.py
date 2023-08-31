@@ -198,8 +198,8 @@ def train(training_set, validation_set, classes, num_epoch=10, batch_size=2):
         
     return train_loss, train_accuracy, val_loss, val_accuracy
 
-def ast():
-    AUDIO_DIR = f"./bird dataset/denoised/"
+def ast(state):
+    AUDIO_DIR = f"./classification/bird/{state}/"
     ANNOTATIONS = f"./freefield1010.csv"
     classes = [1, 0]
 

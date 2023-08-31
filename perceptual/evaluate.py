@@ -34,7 +34,7 @@ def dataLoader(plot=False):
     sr_array = []
     psnr_array = []
 
-    with open("Predator_dataset.json", "r") as dataset:
+    with open("./perceptual/Predator_dataset.json", "r") as dataset:
         data = json.load(dataset)
 
     av = []
@@ -44,8 +44,8 @@ def dataLoader(plot=False):
             results = {}
             try:
                 # print(filename)
-                original, sampleRate = librosa.load(f'./brownian/results/low/{filename}.wav', sr=None)
-                denoised, sampleRate = librosa.load(f'./brownian/results/low/denoised/{filename}.wav', sr=None)
+                original, sampleRate = librosa.load(f'./data/noise/white/data/extreme/original/{filename}.wav', sr=None)
+                denoised, sampleRate = librosa.load(f'./data/noise/white/data/extreme/denoised/{filename}.wav', sr=None)
                 original = original[:len(denoised)] # Ensure signals are the same length
 
                 # print(filename)
@@ -97,10 +97,10 @@ def dataLoader(plot=False):
                 print(f'Could not find {filename}.wav')
     print(f"Original SnNR: {np.mean(av)}")
 
-
-    # print(np.mean(snnr_array))
-    # print(np.mean(sr_array))
-    # print(np.mean(psnr_array))
+    print(np.mean(av))
+    print(np.mean(snnr_array))
+    print(np.mean(sr_array))
+    print(np.mean(psnr_array))
 
     return results
 

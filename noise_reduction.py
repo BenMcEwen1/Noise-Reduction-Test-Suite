@@ -3,8 +3,8 @@ import noisereduce as nr
 import os
 import librosa
 
-NOISY_PATH = './segmentation/dataset/'
-CLEAN_PATH = './segmentation/denoised/'
+NOISY_PATH = './data/noise/white/data/extreme/original/'
+CLEAN_PATH = './data/noise/white/data/extreme/denoised/'
 
 def denoise():
     for _,_,filenames in os.walk(NOISY_PATH):

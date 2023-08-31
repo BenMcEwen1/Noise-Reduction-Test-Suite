@@ -13,6 +13,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import f1_score, precision_score, recall_score 
 
+torch.manual_seed(0)
 
 class AudioDataset(Dataset):
     def __init__(self, annotations_file, audio_dir, transform, target_rate=16000, val=False):
@@ -88,7 +89,7 @@ class UserModel(torch.nn.Module):
 
 def create_model(num_classes):
     # Load pretrained model and "requires_grad" to false to prevent training of pretrained weights
-    model = torch.hub.load('pytorch/vision:v0.10.0', 'resnet50', pretrained=True)
+    model = torch.hub.load('pytorch/vision:v0.10.0', 'resnet50', pretrained=True, force_reload=True)
     for param in model.parameters():
         param.requires_grad = True
     # Append linear layer to the model
@@ -104,24 +105,25 @@ def imshow(img):
     plt.show()
 
 
-def train(training, validation, classes, num_classes, num_epochs=30, batch_size=1, early_stopping=True):
+def train(training, validation, classes, num_classes, num_epochs=40, batch_size=20, early_stopping=True):
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    BASE_MODEL_PATH = f"./models/resnet_model_denoised.pth"
-    if os.path.exists(BASE_MODEL_PATH):
-        print('Load model')
-        model = torch.load(BASE_MODEL_PATH)
-        model.eval()
-    else:
-        model, userModel = create_model(num_classes)
-        model = torch.nn.Sequential(model,userModel)
+    # BASE_MODEL_PATH = f"./models/resnet_model_denoised.pth"
+    # if os.path.exists(BASE_MODEL_PATH):
+    #     print('Load model')
+    #     model = torch.load(BASE_MODEL_PATH)
+    #     model.eval()
+    # else:
+
+    model, userModel = create_model(num_classes)
+    model = torch.nn.Sequential(model,userModel)
     
     model = model.to(device) # Load into GPU memory if available
     model.train()
 
     criterion = nn.CrossEntropyLoss()
 
-    optimizer = optim.SGD(model.parameters(), lr=0.01)
+    optimizer = optim.SGD(model.parameters(), lr=0.001)
 
     train_loss = []
     train_accuracy = []
@@ -172,6 +174,7 @@ def train(training, validation, classes, num_classes, num_epochs=30, batch_size=
         val_running = 0
         val_total = 0
         val_corrects = 0
+        i = 0
 
         for input, label in val_loader:
             input = input.to(device)
@@ -186,40 +189,29 @@ def train(training, validation, classes, num_classes, num_epochs=30, batch_size=
             val_running_accuracy = val_running.item()
             val_running_loss += loss.item()
 
-            GT.append(list(y[0].cpu()).index(1))
-            pred.append(torch.argmax(outputs,dim=1).cpu().item())
+            # GT.append(list(y[0].cpu()).index(1))
+            # pred.append(torch.argmax(outputs,dim=1).cpu().item())
+
+            if (i % 100 == 1) and (i != 1):
+                print(f"Val Accuracy: {val_running_accuracy:.2f}, Val loss: {val_running_loss/i:.2f}")
+            i += 1
 
         val_loss.append(val_running_loss)
         val_accuracy.append(val_running_accuracy)
 
     print('resnet')
     print(f'[{epoch + 1}], Training Accuracy: {accuracy:.2f}, Training loss: {running_loss:.2f}, Val Accuracy: {val_running_accuracy:.2f}, Val loss: {val_running_loss:.2f}')
-    print('F1: {}'.format(f1_score(pred, GT, average='macro')))
-    print('Precision: {}'.format(precision_score(pred, GT, average='macro')))
-    print('Recall: {}'.format(recall_score(pred, GT, average='macro')))
+    # print('F1: {}'.format(f1_score(pred, GT, average='macro')))
+    # print('Precision: {}'.format(precision_score(pred, GT, average='macro')))
+    # print('Recall: {}'.format(recall_score(pred, GT, average='macro')))
     print('--------------------------------------')
-        
-
-        # if ((epoch > 2) and early_stopping):
-        #     if val_running_loss < val_loss[-2]:
-        #         counter = 0
-        #     else:
-        #         counter += 1
-        #         if counter > 2:
-        #             print("Early stopping")
-        #             break
-        
-        # if val_running_accuracy > best_acc:
-        #     print('Saving model')
-        #     best_acc = val_running_accuracy
-        #     torch.save(model, BASE_MODEL_PATH)
 
     return train_loss, train_accuracy, val_loss, val_accuracy
 
 
 def resnet_possum(rms, state):
-    AUDIO_DIR = f"./possum dataset/{rms}/{state}/"
-    ANNOTATIONS = f"./classification/annotations.csv"
+    AUDIO_DIR = f"./classification/datasets/white/{rms}/{state}/"
+    ANNOTATIONS = f"./classification/mini.csv"
     classes = ['possum', 'false-positive']
     NUM_CLASSES = len(classes)
 

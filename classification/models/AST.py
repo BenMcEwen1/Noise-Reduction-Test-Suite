@@ -12,6 +12,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import f1_score, precision_score, recall_score 
 
+torch.manual_seed(0)
+
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 class UserModel(nn.Module):
@@ -81,7 +83,7 @@ def encode(labels, classes):
     return target
     
 
-def train(training_set, validation_set, classes, num_epoch=10, batch_size=2):
+def train(training_set, validation_set, classes, num_epoch=20, batch_size=2):
     usermodel = UserModel()
     usermodel = usermodel.to(device)
 
@@ -95,7 +97,7 @@ def train(training_set, validation_set, classes, num_epoch=10, batch_size=2):
 
     # Temporary
     print('Generating model') #
-    model = ASTForAudioClassification.from_pretrained("MIT/ast-finetuned-audioset-10-10-0.4593") #
+    model = ASTForAudioClassification.from_pretrained("MIT/ast-finetuned-audioset-10-10-0.4593", force_download=True) #
 
     model = model.to(device)
 
@@ -179,8 +181,8 @@ def train(training_set, validation_set, classes, num_epoch=10, batch_size=2):
             GT.append(list(y[0].cpu()).index(1))
             pred.append(torch.argmax(outputs,dim=1).cpu().item())
 
-            # if (i % 100 == 1) and (i != 1):
-            #     print(f"Val Accuracy: {val_running_accuracy:.2f}, Val loss: {val_running_loss/i:.2f}")
+            if (i % 100 == 1) and (i != 1):
+                print(f"Val Accuracy: {val_running_accuracy:.2f}, Val loss: {val_running_loss/i:.2f}")
             i += 1
 
         val_loss.append(val_running_loss)
@@ -200,16 +202,15 @@ def train(training_set, validation_set, classes, num_epoch=10, batch_size=2):
     return train_loss, train_accuracy, val_loss, val_accuracy
 
 def ast_possum(rms, state):
-    AUDIO_DIR = f"./classification/possum dataset/{rms}/{state}/"
-    ANNOTATIONS = f"./classification/annotations.csv"
+    AUDIO_DIR = f"./classification/datasets/white/{rms}/{state}/"
+    ANNOTATIONS = f"./classification/mini.csv"
     classes = ['possum', 'false-positive']
 
     print('Generating training/validation sets...')
     training = AudioDataset(ANNOTATIONS, AUDIO_DIR, target_rate=16000, val=False)
     validation = AudioDataset(ANNOTATIONS, AUDIO_DIR, target_rate=16000, val=True)
 
-
     # print('training...')
-    # loss, acc, val_loss, val_acc = train(training, validation, classes)
+    loss, acc, val_loss, val_acc = train(training, validation, classes)
 
-ast_possum('rms5', 'original')
+# ast_possum('rms5', 'original')

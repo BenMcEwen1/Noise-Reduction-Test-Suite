@@ -6,16 +6,19 @@ from models.AST import ast_possum
 from models.resnet import resnet_possum
 from models.hubert import hubert_possum
 
-RMS = ['rms0', 'rms2', 'rms5']
-STATE = ['denoised', 'original']
+import warnings
+warnings.filterwarnings("ignore")
+
+RMS = ['extreme']  
+STATE = ['denoised']
 
 def train():
     for state in STATE:
-        print(f'State: {state}')
         for rms in RMS:
-            print(f'RMS: {rms}')
-            resnet_possum(rms,state)
-            hubert_possum(rms,state)
+            print('__________________________')
+            print(f'State: {state}, RMS: {rms}')
+            # resnet_possum(rms,state)
+            # hubert_possum(rms,state)
             ast_possum(rms,state)
 
 train()

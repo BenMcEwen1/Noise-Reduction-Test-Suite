@@ -1,3 +1,4 @@
 *.wav
 *.WAV
 __pycache__
+*.pth

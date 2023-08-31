@@ -11,7 +11,7 @@ import os
 from sklearn.metrics import f1_score, precision_score, recall_score 
 
 torch.cuda.empty_cache()
-
+torch.manual_seed(0)
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     
@@ -74,11 +74,11 @@ def encode(labels, classes):
     return target
     
 
-def train(training_set, validation_set, classes, num_epoch=10, batch_size=5):
+def train(training_set, validation_set, classes, num_epoch=20, batch_size=5):
     usermodel = UserModel()
     usermodel = usermodel.to(device)
 
-    model = HubertForSequenceClassification.from_pretrained("superb/hubert-base-superb-ks")
+    model = HubertForSequenceClassification.from_pretrained("superb/hubert-base-superb-ks", force_download=True)
     model = model.to(device)
 
     learning_rate = 1e-4
@@ -160,9 +160,9 @@ def train(training_set, validation_set, classes, num_epoch=10, batch_size=5):
             GT.append(list(y[0].cpu()).index(1))
             pred.append(torch.argmax(outputs,dim=1).cpu().item())
 
-            # if (i % 100 == 1) and (i != 1):
-            #     print(f"[{i}/{len(training_set)}] - Validation Accuracy: {val_running_accuracy:.2f}, validation loss: {val_running_loss/i:.2f}")
-            # i += 1
+            if (i % 100 == 1) and (i != 1):
+                print(f"[{i}/{len(training_set)}] - Validation Accuracy: {val_running_accuracy:.2f}, validation loss: {val_running_loss/i:.2f}")
+            i += 1
 
         val_loss.append(val_running_loss)
         val_accuracy.append(val_running_accuracy)
@@ -182,8 +182,8 @@ def train(training_set, validation_set, classes, num_epoch=10, batch_size=5):
     return train_loss, train_accuracy, val_loss, val_accuracy
 
 def hubert_possum(rms, state):
-    AUDIO_DIR = f"./possum dataset/{rms}/{state}/"
-    ANNOTATIONS = f"./classification/annotations.csv"
+    AUDIO_DIR = f"./classification/datasets/white/{rms}/{state}/"
+    ANNOTATIONS = f"./classification/mini.csv"
     classes = ['possum', 'false-positive']
 
     training = AudioDataset(ANNOTATIONS, AUDIO_DIR, target_rate=16000, val=False)

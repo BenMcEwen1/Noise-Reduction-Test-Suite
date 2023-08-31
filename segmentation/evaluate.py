@@ -30,7 +30,7 @@ def load_truth(directory):
             end = int(np.floor(segment[1]))
             binary[start:end] = 1
         true_binary[filename] = binary
-    print(f'Annotations from {len(true_binary.keys())} files loaded in {time()-t0:.4f}s.')
+    # print(f'Annotations from {len(true_binary.keys())} files loaded in {time()-t0:.4f}s.')
     return(true_binary)
 
 def get_correlation(data, file, wavelet, method=None):
@@ -208,7 +208,7 @@ def evaluate(directory, methods, start, stop, step, refs):
     true_binary = load_truth(directory)
 
     t0 = time()
-    print('Generating audio and masks')
+    # print('Generating audio and masks')
     audio_data = {}
     noise_masks = {}
     if os.path.exists(f'{directory}audio/'):
@@ -223,13 +223,13 @@ def evaluate(directory, methods, start, stop, step, refs):
                 if filename.endswith('.WAV') or filename.endswith('.wav'):
                     audio, sr = librosa.load(directory+filename, sr=None)
                     if sr != 16000:
-                        print(f'Resampling from {sr}Hz to 16000Hz')
+                        # print(f'Resampling from {sr}Hz to 16000Hz')
                         audio = librosa.resample(audio, orig_sr=sr, target_sr=16000)
                         sf.write(f'{directory}{filename}', audio, 16000)
                     audio_data[filename] = (audio,16000)
                     # np.save(f'{directory}audio/{filename[:-4]}.npy', audio_data[filename])
                     noise_masks[filename] = np.array([])
-    print(f'{len(audio_data.keys())} audio files loaded in {time()-t0:.4f}s.')
+    # print(f'{len(audio_data.keys())} audio files loaded in {time()-t0:.4f}s.')
     
     for method in methods:
         t0 = time()
@@ -291,10 +291,9 @@ def evaluate(directory, methods, start, stop, step, refs):
         ax.plot(recall, precision, label=f"{methods_names[method]}", color=method_colours[method])
         ax.plot(recall[np.argmax(F_beta)],precision[np.argmax(F_beta)], color=method_colours[method], marker='o', ms=6)
     ax.legend()
-    plt.show()
+    # plt.show()
 
 wavelet = 'db4'
-directory = './segmentation/denoised/'
 
 method_colours ={'w': 'tab:blue',
                 'e': 'tab:purple',
@@ -328,22 +327,16 @@ method_thresholds = {'w': 100,
                      'pm': 80,
                      'c': 1}
 
-evaluate(directory, ['w','e','r'], 0, 1, 0.001, ref_options) #['w','e','r','p']
 
-# with open(f'{directory}annotation.json') as annotations:
-#     dataset = json.load(annotations)
-#     annotations.close()
+STATE = ['original', 'denoised']
+RMS = ['low', 'medium', 'high', 'extreme']
 
-# files = list(dataset.keys())
-# print(files)
-# data = list(dataset.values())
-# print(data)
-# new = {}
-# for i in range(len(files)):
-#     new[files[i][7:]] = [[data[i][id]['start'],data[i][id]['end']] for id in data[i].keys()]
+def segment():
+    for state in STATE:
+        for rms in RMS:
+            print('__________________________')
+            print(f'State: {state}, RMS: {rms}')
+            directory = f'./segmentation/white/{rms}/{state}/'
+            evaluate(directory, ['w'], 0, 1, 0.001, ref_options)
 
-# print(new)
-
-# with open(f'{directory}annotations.json', 'w') as annotations:
-#     json.dump(new, annotations)
-#     annotations.close()
+segment()
